@@ -24,6 +24,10 @@ uvicorn app.main:app --reload --port 8000
 
 Open `http://localhost:8000` for the UI. API endpoints live under `/api/*`.
 
+## Documentation
+
+See `docs/README.md` for comprehensive docs, including API reference and troubleshooting.
+
 ## Configuration (env vars)
 
 - `QWEN_TTS_MODEL` — default model id or local path (default: `Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice`).
