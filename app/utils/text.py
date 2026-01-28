@@ -25,7 +25,7 @@ def wrap_transcript(
         Wrapped text with newlines inserted, or an empty string if input is blank.
     """
 
-    cleaned = re.sub(r"\\s+", " ", text or "").strip()
+    cleaned = re.sub(r"\s+", " ", text or "").strip()
     if not cleaned:
         return ""
     lines = textwrap.wrap(
@@ -84,7 +84,7 @@ def split_text_chunks(text: str, limit: int = 500) -> List[str]:
 
     if len(text) <= limit:
         return [text]
-    tokens = re.findall(r"\\S+\\s*", text)
+    tokens = re.findall(r"\S+\s*", text)
     chunks: List[str] = []
     current = ""
     for tok in tokens:
