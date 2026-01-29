@@ -1,6 +1,7 @@
 """Text-to-speech synthesis services."""
 
 import io
+from threading import Event
 from typing import Dict, Optional
 
 import numpy as np
@@ -19,6 +20,21 @@ from app.services.model_loader import load_model
 from app.services.voice_profiles import load_voice_profile
 from app.utils.audio import prepare_ref_audio
 from app.utils.text import split_text_chunks
+
+
+def _raise_if_aborted(stop_event: Optional[Event]) -> None:
+    """Cooperatively stop generation when signaled.
+
+    Args:
+        stop_event: Optional threading.Event toggled when the client disconnects
+            or the UI requests cancellation.
+
+    Raises:
+        HTTPException: with 499 status when cancellation is requested.
+    """
+
+    if stop_event and stop_event.is_set():
+        raise HTTPException(status_code=499, detail="Generation aborted.")
 
 
 def resolve_model_id(payload: TTSRequest, profile_meta: Optional[Dict[str, object]]) -> str:
@@ -54,11 +70,13 @@ def resolve_model_id(payload: TTSRequest, profile_meta: Optional[Dict[str, objec
     return DEFAULT_CUSTOM_MODEL
 
 
-def synthesize_tts(payload: TTSRequest) -> StreamingResponse:
+def synthesize_tts(payload: TTSRequest, stop_event: Optional[Event] = None) -> StreamingResponse:
     """Synthesize speech from text according to the payload.
 
     Args:
         payload: TTS request payload.
+        stop_event: Optional cancellation flag set when the client disconnects
+            or the UI explicitly aborts the request.
 
     Returns:
         StreamingResponse with WAV audio.
@@ -66,6 +84,8 @@ def synthesize_tts(payload: TTSRequest) -> StreamingResponse:
     Raises:
         HTTPException: If synthesis fails or inputs are invalid.
     """
+
+    _raise_if_aborted(stop_event)
 
     profile_meta = None
     if payload.mode == "voice_clone" and payload.voice_profile:
@@ -83,6 +103,8 @@ def synthesize_tts(payload: TTSRequest) -> StreamingResponse:
         split_text_chunks(payload.text, limit=500) if payload.chunk_text else [payload.text]
     )
 
+    _raise_if_aborted(stop_event)
+
     device = payload.device or DEFAULT_DEVICE
     model = load_model(model_id, device)
 
@@ -97,12 +119,14 @@ def synthesize_tts(payload: TTSRequest) -> StreamingResponse:
                 raise HTTPException(status_code=400, detail="No speakers available for this model.")
             speaker = supported[0]
         for chunk in text_chunks:
+            _raise_if_aborted(stop_event)
             wavs, sr = model.generate_custom_voice(
                 text=chunk,
                 language=payload.language or "Auto",
                 speaker=speaker,
                 instruct=payload.instruct or "",
             )
+            _raise_if_aborted(stop_event)
             if sr_global is None:
                 sr_global = sr
             elif sr_global != sr:
@@ -115,11 +139,13 @@ def synthesize_tts(payload: TTSRequest) -> StreamingResponse:
                 detail="Voice design mode requires 'instruct' to describe the target voice.",
             )
         for chunk in text_chunks:
+            _raise_if_aborted(stop_event)
             wavs, sr = model.generate_voice_design(
                 text=chunk,
                 language=payload.language or "Auto",
                 instruct=payload.instruct,
             )
+            _raise_if_aborted(stop_event)
             if sr_global is None:
                 sr_global = sr
             elif sr_global != sr:
@@ -129,11 +155,13 @@ def synthesize_tts(payload: TTSRequest) -> StreamingResponse:
         if payload.voice_profile:
             profile_data = profile_meta or load_voice_profile(payload.voice_profile)
             for chunk in text_chunks:
+                _raise_if_aborted(stop_event)
                 wavs, sr = model.generate_voice_clone(
                     text=chunk,
                     language=payload.language or "Auto",
                     voice_clone_prompt=profile_data["prompt_items"],
                 )
+                _raise_if_aborted(stop_event)
                 if sr_global is None:
                     sr_global = sr
                 elif sr_global != sr:
@@ -152,6 +180,7 @@ def synthesize_tts(payload: TTSRequest) -> StreamingResponse:
                 )
             ref_audio_input = prepare_ref_audio(payload.ref_audio)
             for chunk in text_chunks:
+                _raise_if_aborted(stop_event)
                 wavs, sr = model.generate_voice_clone(
                     text=chunk,
                     language=payload.language or "Auto",
@@ -159,6 +188,7 @@ def synthesize_tts(payload: TTSRequest) -> StreamingResponse:
                     ref_text=payload.ref_text or "",
                     x_vector_only_mode=payload.x_vector_only_mode,
                 )
+                _raise_if_aborted(stop_event)
                 if sr_global is None:
                     sr_global = sr
                 elif sr_global != sr:

@@ -147,6 +147,17 @@ button[disabled] {
   transform: none;
 }
 
+button.button-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+button.button-secondary:hover { background: rgba(255, 255, 255, 0.08); filter: none; }
+button.button-secondary:active { background: rgba(255, 255, 255, 0.06); }
+button.button-secondary[disabled] { opacity: 0.6; cursor: not-allowed; }
+
 .status {
   margin: 10px 0 0;
   font-size: 14px;

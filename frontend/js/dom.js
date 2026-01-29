@@ -38,6 +38,7 @@ export const els = {
   designSaveNameInput: byId("design_save_name"),
   designSaveStatus: byId("design-save-status"),
   textInput: byId("text"),
+  cancelBtn: byId("cancel-btn"),
 };
 
 export const modeRadios = Array.from(document.querySelectorAll('input[name="mode"]'));
