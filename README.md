@@ -24,6 +24,27 @@ uvicorn app.main:app --reload --port 8000
 
 Open `http://localhost:8000` for the UI. API endpoints live under `/api/*`.
 
+## Docker
+
+### Build + run (CPU)
+```bash
+docker build -t qwen-tts .
+docker run --rm -p 8000:8000 qwen-tts
+```
+
+### Build + run (GPU)
+Requires NVIDIA Container Toolkit and a CUDA-capable host.
+```bash
+docker build -t qwen-tts .
+docker run --rm --gpus all -e QWEN_TTS_DEVICE=cuda:0 -p 8000:8000 qwen-tts
+```
+
+### Docker Compose
+```bash
+docker compose up --build
+```
+Compose defaults to GPU (`QWEN_TTS_DEVICE=cuda:0`). For CPU-only, set `QWEN_TTS_DEVICE=cpu` in `docker-compose.yml`.
+
 ## Documentation
 
 See `docs/README.md` for comprehensive docs, including API reference and troubleshooting.
