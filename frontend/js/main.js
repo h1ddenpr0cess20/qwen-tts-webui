@@ -34,6 +34,19 @@ if (els.refAudioInput) {
   els.refAudioInput.dataset.usesStored = "false";
 }
 
+let currentAbortController = null;
+
+function setGenerating(isGenerating) {
+  if (els.submitBtn) {
+    els.submitBtn.disabled = isGenerating;
+    els.submitBtn.textContent = isGenerating ? "Generating..." : "Generate";
+  }
+  if (els.cancelBtn) {
+    els.cancelBtn.hidden = !isGenerating;
+    els.cancelBtn.disabled = !isGenerating;
+  }
+}
+
 function clearRefAudioInputs() {
   state.storedRefAudioDataUrl = null;
   if (els.refAudioInput) {
@@ -119,10 +132,7 @@ async function synthesize(e) {
     }
   }
 
-  if (els.submitBtn) {
-    els.submitBtn.disabled = true;
-    els.submitBtn.textContent = "Generating...";
-  }
+  setGenerating(true);
   setStatus("Running synthesis... this can take a bit for large models.");
   if (els.downloadLink) {
     els.downloadLink.hidden = true;
@@ -134,8 +144,10 @@ async function synthesize(e) {
   clearVideoUrl();
   setVideoStatus("");
 
+  currentAbortController = new AbortController();
+
   try {
-    const blob = await synthesizeTts(payload);
+    const blob = await synthesizeTts(payload, currentAbortController.signal);
     const url = URL.createObjectURL(blob);
     state.lastWavBlob = blob;
     state.lastUrls = { wav: url, mp3: null };
@@ -158,12 +170,12 @@ async function synthesize(e) {
     updateModelMeta(payload.mode, usedModel, payload.voice_profile);
   } catch (error) {
     console.error(error);
-    setStatus(error.message || "Failed to synthesize.", true);
+    const isAbort =
+      error?.name === "AbortError" || /aborted/i.test(error?.message || "");
+    setStatus(isAbort ? "Generation canceled." : error.message || "Failed to synthesize.", !isAbort);
   } finally {
-    if (els.submitBtn) {
-      els.submitBtn.disabled = false;
-      els.submitBtn.textContent = "Generate";
-    }
+    setGenerating(false);
+    currentAbortController = null;
   }
 }
 
@@ -312,6 +324,12 @@ els.recordPill?.addEventListener("click", () => {
 });
 els.clearRefBtn?.addEventListener("click", () => {
   clearRefAudioInputs();
+});
+
+els.cancelBtn?.addEventListener("click", () => {
+  if (!currentAbortController) return;
+  setStatus("Cancelling..."); // status helper clears once generation ends
+  currentAbortController.abort();
 });
 
 els.downloadLink?.addEventListener("click", async (e) => {

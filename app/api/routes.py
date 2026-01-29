@@ -1,6 +1,10 @@
 """HTTP API routes for the TTS service."""
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+import asyncio
+from threading import Event
+
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, StreamingResponse
 
 from app.config import (
@@ -164,17 +168,31 @@ def delete_voice_profile_endpoint(name: str) -> dict:
 
 
 @router.post("/api/tts")
-def synthesize(payload: TTSRequest) -> StreamingResponse:
-    """Synthesize speech audio from text.
+async def synthesize(payload: TTSRequest, request: Request) -> StreamingResponse:
+    """Synthesize speech audio from text with cooperative cancellation.
 
     Args:
         payload: TTS request payload.
+        request: Incoming HTTP request (used to detect disconnects).
 
     Returns:
         StreamingResponse containing WAV audio.
     """
 
-    return synthesize_tts(payload)
+    stop_event = Event()
+
+    async def cancel_on_disconnect() -> None:
+        while True:
+            if await request.is_disconnected():
+                stop_event.set()
+                break
+            await asyncio.sleep(0.25)
+
+    watcher = asyncio.create_task(cancel_on_disconnect())
+    try:
+        return await run_in_threadpool(synthesize_tts, payload, stop_event)
+    finally:
+        watcher.cancel()
 
 
 @router.get("/api/health")

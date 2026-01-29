@@ -26,11 +26,12 @@ export function fetchVoiceProfiles() {
   return requestJson("/api/voice_profiles");
 }
 
-export function synthesizeTts(payload) {
+export function synthesizeTts(payload, signal) {
   return requestBlob("/api/tts", {
     method: "POST",
     headers: JSON_HEADERS,
     body: JSON.stringify(payload),
+    signal,
   });
 }
 
