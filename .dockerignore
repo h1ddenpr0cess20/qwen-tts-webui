@@ -1,0 +1,12 @@
+.git
+.venv
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+pytest-cache-files-*/
+.pytest_cache/
+*.log
+models/
+voices/
+frontend/node_modules/
