@@ -186,6 +186,54 @@ def list_voice_profiles() -> List[Dict[str, object]]:
     return sorted(items, key=lambda x: x.get("saved_at") or 0, reverse=True)
 
 
+def import_voice_profile_file(filename: str, content: bytes) -> Dict[str, object]:
+    """Import a saved voice profile from a .pt file.
+
+    Args:
+        filename: Uploaded filename (used for sanitization).
+        content: Raw bytes of the .pt file.
+
+    Returns:
+        Metadata describing the imported profile.
+    """
+
+    if not filename:
+        raise HTTPException(status_code=400, detail="Missing filename.")
+    if not filename.lower().endswith(".pt"):
+        raise HTTPException(status_code=400, detail="Only .pt files are supported.")
+    if not content:
+        raise HTTPException(status_code=400, detail="Empty profile file.")
+
+    safe_name = normalize_profile_name(filename)
+    VOICE_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
+    pt_path, meta_path = profile_paths(safe_name)
+    tmp_path = pt_path.with_suffix(".pt.tmp")
+    tmp_path.write_bytes(content)
+
+    try:
+        data = torch.load(tmp_path, map_location="cpu", weights_only=False)
+    except Exception as exc:  # pragma: no cover - defensive guard
+        tmp_path.unlink(missing_ok=True)
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid voice profile file. Upload a .pt exported from this app.",
+        ) from exc
+
+    if "prompt_items" not in data:
+        tmp_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=400, detail="Corrupted voice profile file.")
+
+    tmp_path.replace(pt_path)
+    meta = {
+        "name": safe_name,
+        "original_name": data.get("original_name") or data.get("name") or safe_name,
+        "model_id": data.get("model_id"),
+        "saved_at": data.get("saved_at") or time.time(),
+    }
+    meta_path.write_text(json.dumps(meta))
+    return {"status": "imported", **meta}
+
+
 def create_voice_profile(payload: VoiceProfileCreate, model_id: str, device: str) -> Dict[str, object]:
     """Create and persist a new voice profile.
 

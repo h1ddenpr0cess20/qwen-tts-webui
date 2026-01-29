@@ -1,6 +1,6 @@
 """HTTP API routes for the TTS service."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 
 from app.config import (
@@ -19,6 +19,7 @@ from app.services.video_renderer import render_video
 from app.services.voice_profiles import (
     create_voice_profile as create_voice_profile_service,
     delete_voice_profile,
+    import_voice_profile_file,
     list_voice_profiles,
     normalize_profile_name,
     resolve_profile_device,
@@ -137,6 +138,14 @@ def create_voice_profile(payload: VoiceProfileCreate) -> dict:
     model_id = resolve_profile_model_id(payload)
     device = resolve_profile_device(payload)
     return create_voice_profile_service(payload, model_id, device)
+
+
+@router.post("/api/voice_profiles/import")
+async def import_voice_profile(file: UploadFile = File(...)) -> dict:
+    """Import a voice profile .pt file."""
+
+    content = await file.read()
+    return import_voice_profile_file(file.filename, content)
 
 
 @router.delete("/api/voice_profiles/{name}")

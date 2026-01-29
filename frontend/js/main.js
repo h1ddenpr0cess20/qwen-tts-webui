@@ -7,6 +7,7 @@ import {
   createVoiceProfile,
   deleteVoiceProfile,
   exportVoiceProfile,
+  importVoiceProfile,
 } from "./api.js";
 import { blobToWavDataUrl, createRecorder, dataUrlFromBlob } from "./audio.js";
 import { els, modeRadios, setProfileStatus, setStatus, setVideoStatus } from "./dom.js";
@@ -421,6 +422,44 @@ els.exportProfileBtn?.addEventListener("click", async () => {
   } finally {
     els.exportProfileBtn.disabled = false;
     els.exportProfileBtn.textContent = originalLabel;
+  }
+});
+
+els.importProfileBtn?.addEventListener("click", () => {
+  els.importProfileFile?.click();
+});
+
+els.importProfileFile?.addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  setProfileStatus("");
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith(".pt")) {
+    setProfileStatus("Choose a .pt profile file to import.", true);
+    e.target.value = "";
+    return;
+  }
+  const originalLabel = els.importProfileBtn?.textContent;
+  if (els.importProfileBtn) {
+    els.importProfileBtn.disabled = true;
+    els.importProfileBtn.textContent = "Importing...";
+  }
+  try {
+    const data = await importVoiceProfile(file);
+    setProfileStatus(`Imported voice profile: ${data.original_name || data.name}.`);
+    await loadVoiceProfiles();
+    if (els.voiceProfileSelect) {
+      els.voiceProfileSelect.value = data.name;
+    }
+    updateRefTextState();
+  } catch (error) {
+    console.error(error);
+    setProfileStatus(error.message || "Failed to import profile.", true);
+  } finally {
+    if (els.importProfileBtn) {
+      els.importProfileBtn.disabled = false;
+      els.importProfileBtn.textContent = originalLabel || "Import .pt";
+    }
+    e.target.value = "";
   }
 });
 

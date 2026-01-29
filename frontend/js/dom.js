@@ -20,6 +20,8 @@ export const els = {
   videoStatus: byId("video-status"),
   deleteProfileBtn: byId("delete-profile-btn"),
   exportProfileBtn: byId("export-profile-btn"),
+  importProfileBtn: byId("import-profile-btn"),
+  importProfileFile: byId("import-profile-file"),
   refText: byId("ref_text"),
   xVectorCheckbox: byId("x_vector_only_mode"),
   refAudioInput: byId("ref_audio"),

@@ -53,6 +53,8 @@
               </select>
               <button type="button" id="delete-profile-btn" class="pill-button">Delete profile</button>
               <button type="button" id="export-profile-btn" class="pill-button">Export .pt</button>
+              <button type="button" id="import-profile-btn" class="pill-button">Import .pt</button>
+              <input type="file" id="import-profile-file" accept=".pt" class="input-hidden">
             </div>
             <div class="row mt-xs">
               <div>
@@ -60,7 +62,7 @@
                 <input id="save_name" type="text" placeholder="e.g. calm_host">
               </div>
               <div class="flex-row align-end">
-                <button type="button" id="save-profile-btn" class="mt-0">Save profile</button>
+                <button type="button" id="save-profile-btn" class="pill-button mt-0">Save profile</button>
               </div>
             </div>
             <div class="status status--tight" id="profile-status"></div>
