@@ -13,7 +13,7 @@ from app.config import VIDEO_LAYOUTS
 from app.utils.audio import audio_duration_seconds, decode_data_url
 from app.utils.ffmpeg import escape_ffmpeg_path, find_system_font
 from app.utils.files import cleanup_files
-from app.utils.text import contains_cjk, wrap_transcript
+from app.utils.text import contains_cjk, fit_transcript_to_box
 
 
 def render_video(payload_data_url: str, transcript: Optional[str], style: str, layout: str) -> FileResponse:
@@ -110,20 +110,21 @@ def render_video(payload_data_url: str, transcript: Optional[str], style: str, l
             cjk = contains_cjk(raw_transcript)
             layout_spec = layout_specs.get(chosen_layout, layout_specs["vertical"])
             scale_factor = layout_spec["font_scale"]
-            font_size = max(32, min(72, int(height * scale_factor)))
+            base_font_size = max(32, min(80, int(height * scale_factor)))
             max_lines = layout_spec["max_lines"]
             glyph_ratio = 0.9 if cjk else 0.50
             safe_width = width * layout_spec["safe_width_ratio"]
-            max_width = max(18, int(safe_width / (font_size * glyph_ratio)))
-            # dynamically cap lines so we don't truncate when vertical space allows
-            line_spacing = int(font_size * 0.06)
-            line_height = font_size + line_spacing
             usable_height = height * (1 - layout_spec["top_ratio"] - 0.05)
-            max_lines_dynamic = max(2, min(max_lines, int(usable_height // max(line_height, 1))))
-            transcript_text = wrap_transcript(
+            transcript_text, font_size, line_spacing = fit_transcript_to_box(
                 raw_transcript,
-                max_width,
-                max_lines=max_lines_dynamic,
+                safe_width_px=safe_width,
+                safe_height_px=usable_height,
+                base_font_size=base_font_size,
+                glyph_ratio=glyph_ratio,
+                max_lines_cap=max_lines,
+                line_spacing_ratio=0.08,
+                min_font_size=26 if chosen_layout == "landscape" else 24,
+                max_font_size=88,
                 break_long_words=cjk,
             )
             if transcript_text:
