@@ -41,6 +41,26 @@ def render_video(payload_data_url: str, transcript: Optional[str], style: str, l
         raise HTTPException(status_code=400, detail="Unsupported layout.")
     width, height = VIDEO_LAYOUTS[chosen_layout]
     fps = 30
+    layout_specs = {
+        "vertical": {
+            "font_scale": 0.024,
+            "max_lines": 14,
+            "top_ratio": 0.08,
+            "safe_width_ratio": 0.99,
+        },
+        "square": {
+            "font_scale": 0.024,
+            "max_lines": 12,
+            "top_ratio": 0.07,
+            "safe_width_ratio": 0.99,
+        },
+        "landscape": {
+            "font_scale": 0.023,
+            "max_lines": 12,
+            "top_ratio": 0.06,
+            "safe_width_ratio": 0.99,
+        },
+    }
 
     raw_transcript = transcript or ""
     duration_sec = audio_duration_seconds(audio_bytes)
@@ -78,25 +98,32 @@ def render_video(payload_data_url: str, transcript: Optional[str], style: str, l
                 "colorkey=0x000000:0.08:0.0 [viz]"
             )
         else:
+            samples_per_frame = width * fps
             viz_filter = (
-                f"[1:a]showwaves=s={width}x{height}:mode=line:rate={fps}:colors={accent},"
+                f"[1:a]aresample={samples_per_frame},"
+                f"showwaves=s={width}x{height}:mode=line:rate={fps}:colors={accent},"
                 "format=rgba,setsar=1,colorkey=0x000000:0.12:0.0 [viz]"
             )
 
         drawtext_filter = ""
         if raw_transcript.strip():
             cjk = contains_cjk(raw_transcript)
-            scale_factor = (
-                0.038 if chosen_layout == "vertical" else 0.035 if chosen_layout == "square" else 0.032
-            )
+            layout_spec = layout_specs.get(chosen_layout, layout_specs["vertical"])
+            scale_factor = layout_spec["font_scale"]
             font_size = max(32, min(72, int(height * scale_factor)))
-            max_lines = 5 if chosen_layout == "vertical" else 4 if chosen_layout == "square" else 4
-            glyph_ratio = 0.9 if cjk else 0.55
-            max_width = max(18, int(width / (font_size * glyph_ratio)))
+            max_lines = layout_spec["max_lines"]
+            glyph_ratio = 0.9 if cjk else 0.50
+            safe_width = width * layout_spec["safe_width_ratio"]
+            max_width = max(18, int(safe_width / (font_size * glyph_ratio)))
+            # dynamically cap lines so we don't truncate when vertical space allows
+            line_spacing = int(font_size * 0.06)
+            line_height = font_size + line_spacing
+            usable_height = height * (1 - layout_spec["top_ratio"] - 0.05)
+            max_lines_dynamic = max(2, min(max_lines, int(usable_height // max(line_height, 1))))
             transcript_text = wrap_transcript(
                 raw_transcript,
                 max_width,
-                max_lines=max_lines,
+                max_lines=max_lines_dynamic,
                 break_long_words=cjk,
             )
             if transcript_text:
@@ -105,11 +132,8 @@ def render_video(payload_data_url: str, transcript: Optional[str], style: str, l
                 ) as text_file:
                     text_file.write(transcript_text)
                     text_path = Path(text_file.name)
-                line_spacing = int(font_size * 0.25)
-                center_ratio = (
-                    0.62 if chosen_layout == "vertical" else 0.60 if chosen_layout == "square" else 0.58
-                )
-                text_y = f"(h*{center_ratio})-(text_h/2)"
+                top_ratio = layout_spec["top_ratio"]
+                text_y = f"(h*{top_ratio})"
                 escaped_text = escape_ffmpeg_path(text_path)
                 fontfile = find_system_font(raw_transcript)
                 font_part = ""

@@ -28,6 +28,9 @@ def wrap_transcript(
     cleaned = re.sub(r"\s+", " ", text or "").strip()
     if not cleaned:
         return ""
+    tokens = re.findall(r"\S+", cleaned)
+    if tokens and not break_long_words and max(len(tok) for tok in tokens) > max_width:
+        break_long_words = True
     lines = textwrap.wrap(
         cleaned,
         width=max_width,
@@ -39,7 +42,7 @@ def wrap_transcript(
         if len(lines[-1]) > max_width - 3:
             lines[-1] = lines[-1][: max_width - 3].rstrip()
         lines[-1] = lines[-1].rstrip(".") + "..."
-    return "\\n".join(lines)
+    return "\n".join(lines)
 
 
 def contains_cjk(text: str) -> bool:
