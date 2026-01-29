@@ -67,3 +67,12 @@ export function deleteVoiceProfile(name) {
 export function exportVoiceProfile(name) {
   return requestBlob(`/api/voice_profiles/${encodeURIComponent(name)}/export`);
 }
+
+export function importVoiceProfile(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return requestJson("/api/voice_profiles/import", {
+    method: "POST",
+    body: formData,
+  });
+}

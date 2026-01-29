@@ -53,6 +53,8 @@
               </select>
               <button type="button" id="delete-profile-btn" class="pill-button">Delete profile</button>
               <button type="button" id="export-profile-btn" class="pill-button">Export .pt</button>
+              <button type="button" id="import-profile-btn" class="pill-button">Import .pt</button>
+              <input type="file" id="import-profile-file" accept=".pt" class="input-hidden">
             </div>
             <div class="row mt-xs">
               <div>
@@ -60,7 +62,7 @@
                 <input id="save_name" type="text" placeholder="e.g. calm_host">
               </div>
               <div class="flex-row align-end">
-                <button type="button" id="save-profile-btn" class="mt-0">Save profile</button>
+                <button type="button" id="save-profile-btn" class="pill-button mt-0">Save profile</button>
               </div>
             </div>
             <div class="status status--tight" id="profile-status"></div>
@@ -89,6 +91,19 @@
           <div class="mode-field" data-modes="custom_voice,voice_design">
             <label for="instruct">Style / Persona (optional for Custom Voice, required for Voice Design)</label>
             <input id="instruct" name="instruct" type="text" placeholder="e.g. Warm, gentle young female voice with calm pacing.">
+          </div>
+
+          <div class="mode-field" data-modes="voice_design">
+            <label for="design_save_name">Save current designed voice as profile (.pt)</label>
+            <div class="row mt-xs">
+              <div class="flex-grow">
+                <input id="design_save_name" type="text" placeholder="e.g. calm_host">
+              </div>
+              <div class="flex-row align-end">
+                <button type="button" id="design-save-btn" class="pill-button mt-0">Save designed voice</button>
+              </div>
+            </div>
+            <div class="status status--tight" id="design-save-status"></div>
           </div>
 
           <div class="mode-field" data-modes="voice_clone">

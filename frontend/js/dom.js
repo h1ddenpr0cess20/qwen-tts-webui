@@ -20,6 +20,8 @@ export const els = {
   videoStatus: byId("video-status"),
   deleteProfileBtn: byId("delete-profile-btn"),
   exportProfileBtn: byId("export-profile-btn"),
+  importProfileBtn: byId("import-profile-btn"),
+  importProfileFile: byId("import-profile-file"),
   refText: byId("ref_text"),
   xVectorCheckbox: byId("x_vector_only_mode"),
   refAudioInput: byId("ref_audio"),
@@ -32,6 +34,9 @@ export const els = {
   fileInput: byId("ref_file"),
   saveProfileBtn: byId("save-profile-btn"),
   saveNameInput: byId("save_name"),
+  designSaveBtn: byId("design-save-btn"),
+  designSaveNameInput: byId("design_save_name"),
+  designSaveStatus: byId("design-save-status"),
   textInput: byId("text"),
 };
 
@@ -54,4 +59,10 @@ export function setProfileStatus(message, isError = false) {
   if (!els.profileStatus) return;
   els.profileStatus.textContent = message || "";
   els.profileStatus.classList.toggle("status--error", !!isError);
+}
+
+export function setDesignSaveStatus(message, isError = false) {
+  if (!els.designSaveStatus) return;
+  els.designSaveStatus.textContent = message || "";
+  els.designSaveStatus.classList.toggle("status--error", !!isError);
 }

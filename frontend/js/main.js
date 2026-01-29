@@ -7,9 +7,17 @@ import {
   createVoiceProfile,
   deleteVoiceProfile,
   exportVoiceProfile,
+  importVoiceProfile,
 } from "./api.js";
 import { blobToWavDataUrl, createRecorder, dataUrlFromBlob } from "./audio.js";
-import { els, modeRadios, setProfileStatus, setStatus, setVideoStatus } from "./dom.js";
+import {
+  els,
+  modeRadios,
+  setDesignSaveStatus,
+  setProfileStatus,
+  setStatus,
+  setVideoStatus,
+} from "./dom.js";
 import { clearVideoUrl, resetAudioState, state } from "./state.js";
 import {
   applyMeta,
@@ -394,6 +402,58 @@ els.saveProfileBtn?.addEventListener("click", async () => {
   }
 });
 
+els.designSaveBtn?.addEventListener("click", async () => {
+  const name = els.designSaveNameInput?.value.trim() || "";
+  const transcript = els.textInput?.value.trim() || "";
+  setDesignSaveStatus("");
+
+  if (!name) {
+    setDesignSaveStatus("Enter a profile name.");
+    return;
+  }
+  if (!state.lastWavBlob) {
+    setDesignSaveStatus("Generate a Voice Design clip first.");
+    return;
+  }
+  if (!transcript) {
+    setDesignSaveStatus("Enter the text used for the Voice Design generation.");
+    return;
+  }
+
+  const preferredCloneModel =
+    state.defaultModels.voice_clone || state.defaultModels.custom_voice || null;
+
+  if (els.designSaveBtn) {
+    els.designSaveBtn.disabled = true;
+    els.designSaveBtn.textContent = "Saving...";
+  }
+  try {
+    const dataUrl = await dataUrlFromBlob(state.lastWavBlob);
+    const data = await createVoiceProfile({
+      name,
+      ref_audio: dataUrl,
+      ref_text: transcript,
+      x_vector_only_mode: false,
+      model_id: preferredCloneModel,
+    });
+    setDesignSaveStatus(`Saved designed voice: ${data.original_name || data.name}.`);
+    if (els.designSaveNameInput) els.designSaveNameInput.value = "";
+    await loadVoiceProfiles();
+    if (els.voiceProfileSelect) {
+      els.voiceProfileSelect.value = data.name;
+    }
+    updateRefTextState();
+  } catch (error) {
+    console.error(error);
+    setDesignSaveStatus(error.message || "Failed to save designed voice.", true);
+  } finally {
+    if (els.designSaveBtn) {
+      els.designSaveBtn.disabled = false;
+      els.designSaveBtn.textContent = "Save designed voice";
+    }
+  }
+});
+
 els.exportProfileBtn?.addEventListener("click", async () => {
   const name = els.voiceProfileSelect?.value;
   setProfileStatus("");
@@ -421,6 +481,44 @@ els.exportProfileBtn?.addEventListener("click", async () => {
   } finally {
     els.exportProfileBtn.disabled = false;
     els.exportProfileBtn.textContent = originalLabel;
+  }
+});
+
+els.importProfileBtn?.addEventListener("click", () => {
+  els.importProfileFile?.click();
+});
+
+els.importProfileFile?.addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  setProfileStatus("");
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith(".pt")) {
+    setProfileStatus("Choose a .pt profile file to import.", true);
+    e.target.value = "";
+    return;
+  }
+  const originalLabel = els.importProfileBtn?.textContent;
+  if (els.importProfileBtn) {
+    els.importProfileBtn.disabled = true;
+    els.importProfileBtn.textContent = "Importing...";
+  }
+  try {
+    const data = await importVoiceProfile(file);
+    setProfileStatus(`Imported voice profile: ${data.original_name || data.name}.`);
+    await loadVoiceProfiles();
+    if (els.voiceProfileSelect) {
+      els.voiceProfileSelect.value = data.name;
+    }
+    updateRefTextState();
+  } catch (error) {
+    console.error(error);
+    setProfileStatus(error.message || "Failed to import profile.", true);
+  } finally {
+    if (els.importProfileBtn) {
+      els.importProfileBtn.disabled = false;
+      els.importProfileBtn.textContent = originalLabel || "Import .pt";
+    }
+    e.target.value = "";
   }
 });
 
