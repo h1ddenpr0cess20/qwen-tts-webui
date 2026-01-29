@@ -10,7 +10,14 @@ import {
   importVoiceProfile,
 } from "./api.js";
 import { blobToWavDataUrl, createRecorder, dataUrlFromBlob } from "./audio.js";
-import { els, modeRadios, setProfileStatus, setStatus, setVideoStatus } from "./dom.js";
+import {
+  els,
+  modeRadios,
+  setDesignSaveStatus,
+  setProfileStatus,
+  setStatus,
+  setVideoStatus,
+} from "./dom.js";
 import { clearVideoUrl, resetAudioState, state } from "./state.js";
 import {
   applyMeta,
@@ -391,6 +398,58 @@ els.saveProfileBtn?.addEventListener("click", async () => {
     if (els.saveProfileBtn) {
       els.saveProfileBtn.disabled = false;
       els.saveProfileBtn.textContent = "Save profile";
+    }
+  }
+});
+
+els.designSaveBtn?.addEventListener("click", async () => {
+  const name = els.designSaveNameInput?.value.trim() || "";
+  const transcript = els.textInput?.value.trim() || "";
+  setDesignSaveStatus("");
+
+  if (!name) {
+    setDesignSaveStatus("Enter a profile name.");
+    return;
+  }
+  if (!state.lastWavBlob) {
+    setDesignSaveStatus("Generate a Voice Design clip first.");
+    return;
+  }
+  if (!transcript) {
+    setDesignSaveStatus("Enter the text used for the Voice Design generation.");
+    return;
+  }
+
+  const preferredCloneModel =
+    state.defaultModels.voice_clone || state.defaultModels.custom_voice || null;
+
+  if (els.designSaveBtn) {
+    els.designSaveBtn.disabled = true;
+    els.designSaveBtn.textContent = "Saving...";
+  }
+  try {
+    const dataUrl = await dataUrlFromBlob(state.lastWavBlob);
+    const data = await createVoiceProfile({
+      name,
+      ref_audio: dataUrl,
+      ref_text: transcript,
+      x_vector_only_mode: false,
+      model_id: preferredCloneModel,
+    });
+    setDesignSaveStatus(`Saved designed voice: ${data.original_name || data.name}.`);
+    if (els.designSaveNameInput) els.designSaveNameInput.value = "";
+    await loadVoiceProfiles();
+    if (els.voiceProfileSelect) {
+      els.voiceProfileSelect.value = data.name;
+    }
+    updateRefTextState();
+  } catch (error) {
+    console.error(error);
+    setDesignSaveStatus(error.message || "Failed to save designed voice.", true);
+  } finally {
+    if (els.designSaveBtn) {
+      els.designSaveBtn.disabled = false;
+      els.designSaveBtn.textContent = "Save designed voice";
     }
   }
 });

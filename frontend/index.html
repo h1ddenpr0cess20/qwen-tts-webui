@@ -93,6 +93,19 @@
             <input id="instruct" name="instruct" type="text" placeholder="e.g. Warm, gentle young female voice with calm pacing.">
           </div>
 
+          <div class="mode-field" data-modes="voice_design">
+            <label for="design_save_name">Save current designed voice as profile (.pt)</label>
+            <div class="row mt-xs">
+              <div class="flex-grow">
+                <input id="design_save_name" type="text" placeholder="e.g. calm_host">
+              </div>
+              <div class="flex-row align-end">
+                <button type="button" id="design-save-btn" class="pill-button mt-0">Save designed voice</button>
+              </div>
+            </div>
+            <div class="status status--tight" id="design-save-status"></div>
+          </div>
+
           <div class="mode-field" data-modes="voice_clone">
             <label for="ref_audio">Reference audio (URL / local path / base64)</label>
             <input id="ref_audio" name="ref_audio" type="text" placeholder="https://.../my_voice.wav">
