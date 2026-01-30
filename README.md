@@ -2,6 +2,19 @@
 
 A FastAPI + vanilla JS UI to run [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) locally: custom voices, voice design, voice cloning, and per-request model selection.
 
+## Contents
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Run](#run)
+- [Docker](#docker)
+- [Documentation](#documentation)
+- [Configuration](#configuration-env-vars)
+- [Features](#features)
+- [API Examples](#api-examples)
+- [Frontend](#frontend)
+- [Notes](#notes)
+- Policies & warnings: [Code of Conduct](CODE_OF_CONDUCT.md), [Contributing](CONTRIBUTING.md), [Security](SECURITY.md), [AI Output Disclaimer](docs/ai-output-disclaimer.md), [Anti-Fraud Warning](docs/anti-fraud-warning.md), [Not a Companion](docs/not-a-companion.md)
+
 ## Prerequisites
 
 - Python 3.10+ with a GPU-enabled PyTorch build (GPU strongly recommended).
