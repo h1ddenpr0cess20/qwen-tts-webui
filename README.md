@@ -2,18 +2,19 @@
 
 A FastAPI + vanilla JS UI to run [Qwen3-TTS](https://github.com/QwenLM/Qwen3-TTS) locally: custom voices, voice design, voice cloning, and per-request model selection.
 
-## Contents
-- [Prerequisites](#prerequisites)
-- [Setup](#setup)
-- [Run](#run)
-- [Docker](#docker)
-- [Documentation](#documentation)
-- [Configuration](#configuration-env-vars)
-- [Features](#features)
-- [API Examples](#api-examples)
-- [Frontend](#frontend)
-- [Notes](#notes)
-- Policies & warnings: [Code of Conduct](CODE_OF_CONDUCT.md), [Contributing](CONTRIBUTING.md), [Security](SECURITY.md), [AI Output Disclaimer](docs/ai-output-disclaimer.md), [Anti-Fraud Warning](docs/anti-fraud-warning.md), [Not a Companion](docs/not-a-companion.md)
+## Documentation
+
+- [Overview](docs/README.md)
+- [Quickstart](docs/quickstart.md)
+- [API](docs/api.md)
+- [Configuration](docs/configuration.md)
+- [Docker](docs/docker.md)
+- [Architecture](docs/architecture.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [AI Output Disclaimer](docs/ai-output-disclaimer.md)
+- [Anti-Fraud Warning](docs/anti-fraud-warning.md)
+- [Not a Companion](docs/not-a-companion.md)
+
 
 ## Prerequisites
 
@@ -57,10 +58,6 @@ docker run --rm --gpus all -e QWEN_TTS_DEVICE=cuda:0 -p 8000:8000 qwen-tts
 docker compose up --build
 ```
 Compose defaults to GPU (`QWEN_TTS_DEVICE=cuda:0`). For CPU-only, set `QWEN_TTS_DEVICE=cpu` in `docker-compose.yml`.
-
-## Documentation
-
-See `docs/README.md` for comprehensive docs, including API reference and troubleshooting.
 
 ## Configuration (env vars)
 
