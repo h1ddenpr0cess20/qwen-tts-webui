@@ -93,14 +93,23 @@ def synthesize_tts(payload: TTSRequest, stop_event: Optional[Event] = None) -> S
 
     model_id = resolve_model_id(payload, profile_meta)
 
-    if not payload.chunk_text and len(payload.text) > 500:
+    text_limit = 500
+    chunking_enabled = payload.chunk_text and payload.mode != "voice_design"
+
+    if payload.mode == "voice_design":
+        if len(payload.text) > text_limit:
+            raise HTTPException(
+                status_code=400,
+                detail="Voice design mode requires text <= 500 characters; chunking is disabled.",
+            )
+    elif not chunking_enabled and len(payload.text) > text_limit:
         raise HTTPException(
             status_code=400,
             detail="Text exceeds 500 characters. Shorten it or enable chunk_text to auto-split.",
         )
 
     text_chunks = (
-        split_text_chunks(payload.text, limit=500) if payload.chunk_text else [payload.text]
+        split_text_chunks(payload.text, limit=text_limit) if chunking_enabled else [payload.text]
     )
 
     _raise_if_aborted(stop_event)

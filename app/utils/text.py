@@ -155,7 +155,7 @@ def contains_cjk(text: str) -> bool:
 
 
 def split_text_chunks(text: str, limit: int = 500) -> List[str]:
-    """Split text into chunks without breaking words.
+    """Split text into chunks, preferring sentence boundaries.
 
     Args:
         text: Text to split into chunks.
@@ -165,26 +165,61 @@ def split_text_chunks(text: str, limit: int = 500) -> List[str]:
         List of chunked strings.
 
     Raises:
-        HTTPException: If a single token exceeds the limit.
+        HTTPException: If a single token or sentence exceeds the limit.
     """
+
+    def _chunk_by_words(segment: str) -> List[str]:
+        tokens = re.findall(r"\S+\s*", segment)
+        if not tokens:
+            return []
+        parts: List[str] = []
+        current_part = ""
+        for tok in tokens:
+            if len(tok) > limit:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"A single word exceeds the {limit}-character limit: '{tok.strip()[:32]}'...",
+                )
+            if len(current_part) + len(tok) > limit:
+                if current_part.strip():
+                    parts.append(current_part.rstrip())
+                current_part = tok
+            else:
+                current_part += tok
+        if current_part.strip():
+            parts.append(current_part.rstrip())
+        return parts
 
     if len(text) <= limit:
         return [text]
-    tokens = re.findall(r"\S+\s*", text)
+
+    # Prefer splitting on sentence boundaries to avoid mid-sentence cuts.
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?。！？])\s+", text) if s.strip()]
+    if len(sentences) <= 1:
+        # No clear sentence boundaries; fall back to word-based chunking.
+        return _chunk_by_words(text)
+
     chunks: List[str] = []
     current = ""
-    for tok in tokens:
-        if len(tok) > limit:
+
+    for sentence in sentences:
+        if len(sentence) > limit:
             raise HTTPException(
                 status_code=400,
-                detail=f"A single word exceeds the {limit}-character limit: '{tok.strip()[:32]}'...",
+                detail=(
+                    f"A single sentence exceeds the {limit}-character limit. "
+                    "Shorten the sentence or disable chunking."
+                ),
             )
-        if len(current) + len(tok) > limit:
-            if current.strip():
-                chunks.append(current.rstrip())
-            current = tok
+        if not current:
+            current = sentence
+            continue
+        if len(current) + 1 + len(sentence) <= limit:
+            current = f"{current} {sentence}"
         else:
-            current += tok
+            chunks.append(current.strip())
+            current = sentence
+
     if current.strip():
-        chunks.append(current.rstrip())
+        chunks.append(current.strip())
     return chunks
