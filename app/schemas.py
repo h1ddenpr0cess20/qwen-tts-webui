@@ -27,7 +27,10 @@ class TTSRequest(BaseModel):
     text: str = Field(..., min_length=1, description="Text to synthesize")
     chunk_text: bool = Field(
         default=True,
-        description="Auto-split text into <=500 char chunks to avoid model limit.",
+        description=(
+            "Auto-split text into <=500 char chunks to avoid model limit. "
+            "Ignored for voice_design (500-char max)."
+        ),
     )
     language: Optional[str] = Field(
         default=None, description="Language tag; leave empty for auto"
