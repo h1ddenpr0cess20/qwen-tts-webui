@@ -1,5 +1,5 @@
 services:
-  qwen-tts:
+  qwen-tts-webui:
     build: .
     ports:
       - "8000:8000"
