@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: ${{ vars.DOCKERHUB_REPO != '' && vars.DOCKERHUB_REPO || format('{0}/qwen-tts', secrets.DOCKERHUB_USERNAME) }}
+  IMAGE_NAME: ${{ vars.DOCKERHUB_REPO != '' && vars.DOCKERHUB_REPO || format('{0}/qwen-tts-webui', secrets.DOCKERHUB_USERNAME) }}
   TORCH_CUDA: ${{ vars.TORCH_CUDA || 'cu121' }}
   INSTALL_FLASH_ATTN: ${{ vars.INSTALL_FLASH_ATTN || '1' }}
   PLATFORMS: linux/amd64

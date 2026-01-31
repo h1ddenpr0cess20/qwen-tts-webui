@@ -7,13 +7,13 @@ This document describes how to build and run the app with Docker, plus common GP
 Build the image:
 
 ```bash
-docker build -t qwen-tts .
+docker build -t qwen-tts-webui .
 ```
 
 Run the container:
 
 ```bash
-docker run --rm -p 8000:8000 qwen-tts
+docker run --rm -p 8000:8000 qwen-tts-webui
 ```
 
 Open the UI at `http://localhost:8000`.
@@ -41,7 +41,7 @@ The compose file defaults to GPU (`QWEN_TTS_DEVICE=cuda:0`). For CPU-only, chang
 Voice profiles are stored under `voices/` by default. To keep them across container runs, mount a volume:
 
 ```bash
-docker run --rm -p 8000:8000 -v ${PWD}/voices:/app/voices qwen-tts
+docker run --rm -p 8000:8000 -v ${PWD}/voices:/app/voices qwen-tts-webui
 ```
 
 You can also set a different directory with `VOICE_PROFILE_DIR`.
@@ -51,7 +51,7 @@ You can also set a different directory with `VOICE_PROFILE_DIR`.
 If you pre-download a model, mount it and point `QWEN_TTS_MODEL` at the local path:
 
 ```bash
-docker run --rm -p 8000:8000 -v ${PWD}/models:/models -e QWEN_TTS_MODEL=/models/Qwen3-TTS-12Hz-1.7B-CustomVoice qwen-tts
+docker run --rm -p 8000:8000 -v ${PWD}/models:/models -e QWEN_TTS_MODEL=/models/Qwen3-TTS-12Hz-1.7B-CustomVoice qwen-tts-webui
 ```
 
 ## Troubleshooting
