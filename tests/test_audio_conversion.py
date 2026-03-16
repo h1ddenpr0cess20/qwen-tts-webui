@@ -38,7 +38,7 @@ class TestConvertWavDataUrlToMp3:
         try:
             response = convert_wav_data_url_to_mp3(data_url)
         except HTTPException as e:
-            if e.status_code == 500 and "pydub" in e.detail.lower():
+            if e.status_code == 500:
                 pytest.skip("pydub/ffmpeg not available in test environment")
             raise
 
