@@ -5,9 +5,9 @@ from pathlib import Path
 
 from app.deps import torch
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR / "frontend"
-VOICE_PROFILE_DIR = Path(os.getenv("VOICE_PROFILE_DIR", BASE_DIR / "voices"))
+VOICE_PROFILE_DIR = Path(os.getenv("VOICE_PROFILE_DIR", Path.cwd() / "voices"))
 VOICE_PROFILE_DIR.mkdir(parents=True, exist_ok=True)
 
 DEFAULT_MODEL_ID = os.getenv("QWEN_TTS_MODEL", "Qwen/Qwen3-TTS-12Hz-0.6B-CustomVoice")
