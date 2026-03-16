@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qwen-tts-webui"
-version = "0.1.0"
+version = "1.0.0"
 description = "FastAPI web UI for Qwen3-TTS: custom voices, voice design, voice cloning, and per-request model selection."
 readme = "README.md"
 license = "MIT"
@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["tts", "text-to-speech", "qwen", "voice-cloning", "speech-synthesis"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Web Environment",
     "Framework :: FastAPI",
     "Intended Audience :: Developers",
