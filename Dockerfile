@@ -34,7 +34,6 @@ ARG INSTALL_FLASH_ATTN=1
 RUN if [ "$INSTALL_FLASH_ATTN" = "1" ]; then python3 -m pip install -U flash-attn --no-build-isolation; fi
 
 COPY app ./app
-COPY frontend ./frontend
 COPY docs ./docs
 COPY README.md ./
 

@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=68.0", "setuptools-scm>=8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qwen-tts-webui"
+version = "0.1.0"
+description = "FastAPI web UI for Qwen3-TTS: custom voices, voice design, voice cloning, and per-request model selection."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "Dustin Whyte" },
+]
+keywords = ["tts", "text-to-speech", "qwen", "voice-cloning", "speech-synthesis"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
+
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "qwen-tts",
+    "soundfile",
+    "numpy",
+    "pydub",
+]
+
+[project.optional-dependencies]
+flash = ["flash-attn"]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "httpx>=0.24",
+]
+
+[project.urls]
+Homepage = "https://github.com/h1ddenpr0cess20/qwen-tts-webui"
+Repository = "https://github.com/h1ddenpr0cess20/qwen-tts-webui"
+Issues = "https://github.com/h1ddenpr0cess20/qwen-tts-webui/issues"
+
+[project.scripts]
+qwen-tts = "app.__main__:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.setuptools.package-data]
+app = ["frontend/**/*"]
