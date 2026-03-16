@@ -49,7 +49,7 @@ Repository = "https://github.com/h1ddenpr0cess20/qwen-tts-webui"
 Issues = "https://github.com/h1ddenpr0cess20/qwen-tts-webui/issues"
 
 [project.scripts]
-qwen-tts = "app.__main__:main"
+qwen-tts-webui = "app.__main__:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
